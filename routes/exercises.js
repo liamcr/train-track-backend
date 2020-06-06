@@ -1,6 +1,6 @@
 const router = require("express").Router();
-let Exercise = require("../models/exercise.model");
-let Workout = require("../models/workout.model");
+const Exercise = require("../models/exercise.model");
+const Workout = require("../models/workout.model");
 
 router.route("/").get((req, res) => {
   Exercise.find()
