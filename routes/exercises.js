@@ -8,6 +8,12 @@ router.route("/").get((req, res) => {
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
+router.route("/:id").get((req, res) => {
+  Exercise.findById(req.params.id)
+    .then((exercise) => res.json(exercise))
+    .catch((err) => res.status(400).json("Error: " + err));
+});
+
 router.route("/add").post((req, res) => {
   const workoutId = req.body.workoutId;
   const name = req.body.name;
@@ -32,6 +38,27 @@ router.route("/add").post((req, res) => {
           .catch((err) => res.status(400).json("Error: " + err));
       });
     })
+    .catch((err) => res.status(400).json("Error: " + err));
+});
+
+router.route("/update/:id").put((req, res) => {
+  Exercise.findById(req.params.id)
+    .then((exercise) => {
+      exercise.name = req.body.name;
+      exercise.description = req.body.description;
+      exercise.sets = req.body.sets;
+
+      exercise
+        .save()
+        .then(() => res.json("Exercise updated!"))
+        .catch((err) => res.status(400).json("Error: " + err));
+    })
+    .catch((err) => res.status(400).json("Error: " + err));
+});
+
+router.route("/:id").delete((req, res) => {
+  Exercise.findByIdAndDelete(req.params.id)
+    .then(() => res.json("Exercise deleted."))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
