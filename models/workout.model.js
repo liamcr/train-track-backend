@@ -16,7 +16,7 @@ const workoutSchema = new Schema(
       maxlength: 256,
     },
     exerciseIds: {
-      type: [String],
+      type: [mongoose.ObjectId],
       required: true,
       default: [],
     },
