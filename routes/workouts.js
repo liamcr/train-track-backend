@@ -14,11 +14,13 @@ router.route("/:id").get((req, res) => {
 });
 
 router.route("/add").post((req, res) => {
+  const userId = req.body.userId;
   const name = req.body.name;
   const description = req.body.description;
   const date = req.body.date;
 
   const newWorkout = new Workout({
+    user: userId,
     name: name,
     description: description,
     date: date,
@@ -33,6 +35,7 @@ router.route("/add").post((req, res) => {
 router.route("/update/:id").put((req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
+      workout.user = req.body.userId;
       workout.name = req.body.name;
       workout.description = req.body.description;
       workout.date = req.body.date;
