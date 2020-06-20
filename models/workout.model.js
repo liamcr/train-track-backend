@@ -29,6 +29,32 @@ const workoutSchema = new Schema(
       required: true,
       default: Date.now(),
     },
+    likes: {
+      type: [mongoose.ObjectId],
+      required: true,
+      default: [],
+    },
+    comments: {
+      type: [
+        {
+          userId: {
+            type: mongoose.ObjectId,
+            required: true,
+          },
+          comment: {
+            type: String,
+            required: true,
+          },
+          date: {
+            type: Date,
+            required: true,
+            default: Date.now(),
+          },
+        },
+      ],
+      required: true,
+      default: [],
+    },
   },
   {
     timestamps: true,

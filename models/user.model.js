@@ -15,6 +15,16 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  followers: {
+    type: [mongoose.ObjectId],
+    required: true,
+    default: [],
+  },
+  following: {
+    type: [mongoose.ObjectId],
+    required: true,
+    default: [],
+  },
 });
 
 userSchema.methods.generateHash = function (password) {
