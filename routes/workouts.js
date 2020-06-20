@@ -8,7 +8,7 @@ router.route("/:id").get((req, res) => {
 });
 
 router.route("/user/:id").get((req, res) => {
-  Workout.find({ user: req.body.userId })
+  Workout.find({ user: req.params.id })
     .then((workouts) => res.json(workouts.sort((a, b) => b.date - a.date)))
     .catch((err) => res.status(400).json("Error: " + err));
 });
@@ -29,6 +29,38 @@ router.route("/add").post((req, res) => {
   newWorkout
     .save()
     .then(() => res.json("Workout added!"))
+    .catch((err) => res.status(400).json("Error: " + err));
+});
+
+router.route("/like/:id").post((req, res) => {
+  Workout.findById(req.params.id)
+    .then((workout) => {
+      workout.likes.push(req.body.userId);
+
+      workout
+        .save()
+        .then(() => res.json("Post liked!"))
+        .catch((err) => res.status(400).json("Error: " + err));
+    })
+    .catch((err) => res.status(400).json("Error: " + err));
+});
+
+router.route("/comment/:id").post((req, res) => {
+  Workout.findById(req.params.id)
+    .then((workout) => {
+      const comment = {
+        userId: req.body.userId,
+        comment: req.body.comment,
+        date: req.body.date,
+      };
+
+      workout.comments.push({ comment });
+
+      workout
+        .save()
+        .then(() => res.json("Comment posted!"))
+        .catch((err) => res.status(400).json("Error: " + err));
+    })
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
