@@ -2,12 +2,6 @@ const router = require("express").Router();
 const Exercise = require("../models/exercise.model");
 const Workout = require("../models/workout.model");
 
-router.route("/").get((req, res) => {
-  Exercise.find()
-    .then((exercises) => res.json(exercises))
-    .catch((err) => res.status(400).json("Error: " + err));
-});
-
 router.route("/:id").get((req, res) => {
   Exercise.findById(req.params.id)
     .then((exercise) => res.json(exercise))

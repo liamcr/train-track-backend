@@ -51,7 +51,6 @@ router.route("/comment/:id").post((req, res) => {
       const comment = {
         userId: req.body.userId,
         comment: req.body.comment,
-        date: req.body.date,
       };
 
       workout.comments.push({ comment });
@@ -67,7 +66,6 @@ router.route("/comment/:id").post((req, res) => {
 router.route("/update/:id").put((req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
-      workout.user = req.body.userId;
       workout.name = req.body.name;
       workout.description = req.body.description;
       workout.date = req.body.date;
