@@ -53,7 +53,7 @@ router.route("/comment/:id").post((req, res) => {
         comment: req.body.comment,
       };
 
-      workout.comments.push({ comment });
+      workout.comments.push(comment);
 
       workout
         .save()
