@@ -24,20 +24,25 @@ router.route("/login").post((req, res) => {
 });
 
 router.route("/follow/:id").post((req, res) => {
-  let currentUser = User.findById(req.body.currentUserId);
-  let userToFollow = User.findById(req.params.id);
+  User.findById(req.body.currentUserId)
+    .then((currentUser) => {
+      User.findById(req.params.id)
+        .then((userToFollow) => {
+          currentUser.following.push(userToFollow.id);
+          userToFollow.followers.push(currentUser.id);
 
-  currentUser.following.push(userToFollow.id);
-  userToFollow.followers.push(currentUser.id);
-
-  currentUser
-    .save()
-    .then(() =>
-      userToFollow
-        .save()
-        .then(() => res.json("Followed!"))
-        .catch((err) => res.status(400).json("Error: " + err))
-    )
+          currentUser
+            .save()
+            .then(() =>
+              userToFollow
+                .save()
+                .then(() => res.json("Followed!"))
+                .catch((err) => res.status(400).json("Error: " + err))
+            )
+            .catch((err) => res.status(400).json("Error: " + err));
+        })
+        .catch((err) => res.status(400).json("Error: " + err));
+    })
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
