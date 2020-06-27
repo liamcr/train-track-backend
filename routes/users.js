@@ -19,7 +19,11 @@ router.route("/register").post((req, res) => {
 
       res.json({ accessToken: accessToken });
     })
-    .catch((err) => res.status(400).json("Error: " + err));
+    .catch((err) =>
+      res
+        .status(409)
+        .json(`Error: Username "${newUser.username}" is already taken`)
+    );
 });
 
 router.route("/login").post((req, res) => {
@@ -34,7 +38,9 @@ router.route("/login").post((req, res) => {
 
       res.json({ accessToken: accessToken });
     }
-  });
+  }).catch((err) =>
+    res.status(401).json(`Error: Username or password does not match`)
+  );
 });
 
 router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
