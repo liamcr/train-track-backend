@@ -42,6 +42,15 @@ router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
     .then((currentUser) => {
       User.findById(req.params.id)
         .then((userToFollow) => {
+          // If a user if trying to follow someone they are already following,
+          // response with "Bad Request"
+          if (
+            currentUser.following.findIndex(userToFollow.id) !== -1 ||
+            userToFollow.followers.findIndex(currentUser.id) !== -1
+          ) {
+            res.status(400).json("Error: User is already following");
+          }
+
           currentUser.following.push(userToFollow.id);
           userToFollow.followers.push(currentUser.id);
 
