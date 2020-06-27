@@ -38,23 +38,36 @@ router.route("/login").post((req, res) => {
 });
 
 router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
-  let currentUser = await User.findById(req.user.userId);
-  let userToFollow = await User.findById(req.params.id);
+  User.findById(req.user.userId)
+    .then((currentUser) => {
+      User.findById(req.params.id)
+        .then((userToFollow) => {
+          currentUser.following.push(userToFollow.id);
+          userToFollow.followers.push(currentUser.id);
 
-  currentUser.following.push(userToFollow.id);
-  userToFollow.followers.push(currentUser.id);
-
-  currentUser
-    .save()
-    .then(() =>
-      userToFollow
-        .save()
-        .then(() => {
-          res.json("Followed!");
+          currentUser
+            .save()
+            .then(() =>
+              userToFollow
+                .save()
+                .then(() => {
+                  res.json("Followed!");
+                })
+                .catch((err) => res.status(400).json("Error: " + err))
+            )
+            .catch((err) => res.status(400).json("Error: " + err));
         })
-        .catch((err) => res.status(400).json("Error: " + err))
-    )
-    .catch((err) => res.status(400).json("Error: " + err));
+        .catch((err) =>
+          res
+            .status(404)
+            .json(`Error: Could not find user with id ${req.params.id}`)
+        );
+    })
+    .catch((err) =>
+      res
+        .status(404)
+        .json(`Error: Could not find user with id ${req.user.userId}`)
+    );
 });
 
 module.exports = router;
