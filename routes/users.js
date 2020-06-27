@@ -10,7 +10,11 @@ router.route("/register").post((req, res) => {
   newUser.password = newUser.generateHash(req.body.password);
   newUser
     .save()
-    .then(() => res.json({ userId: newUser.id }))
+    .then(() => {
+      const accessToken = jwt.sign({ username: req.body.username });
+
+      res.json({ accessToken: accessToken });
+    })
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
