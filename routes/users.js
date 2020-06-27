@@ -1,3 +1,4 @@
+const jwt = require("jsonwebtoken");
 const router = require("express").Router();
 const User = require("../models/user.model");
 
@@ -18,7 +19,9 @@ router.route("/login").post((req, res) => {
     if (!user.validPassword(req.body.password)) {
       res.status(401).json("Error: Username or password does not match");
     } else {
-      res.json({ userId: user.id });
+      const accessToken = jwt.sign({ username: req.body.username });
+
+      res.json({ accessToken: accessToken });
     }
   });
 });
