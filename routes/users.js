@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const router = require("express").Router();
 const User = require("../models/user.model");
+const authenticateJWT = require("../middleware/authenticate");
 
 router.route("/register").post((req, res) => {
   let newUser = User({
@@ -11,7 +12,10 @@ router.route("/register").post((req, res) => {
   newUser
     .save()
     .then(() => {
-      const accessToken = jwt.sign({ username: req.body.username });
+      const accessToken = jwt.sign(
+        { userId: newUser.id },
+        process.env.TOKEN_SECRET
+      );
 
       res.json({ accessToken: accessToken });
     })
@@ -23,33 +27,33 @@ router.route("/login").post((req, res) => {
     if (!user.validPassword(req.body.password)) {
       res.status(401).json("Error: Username or password does not match");
     } else {
-      const accessToken = jwt.sign({ username: req.body.username });
+      const accessToken = jwt.sign(
+        { userId: user.id },
+        process.env.TOKEN_SECRET
+      );
 
       res.json({ accessToken: accessToken });
     }
   });
 });
 
-router.route("/follow/:id").post((req, res) => {
-  User.findById(req.body.currentUserId)
-    .then((currentUser) => {
-      User.findById(req.params.id)
-        .then((userToFollow) => {
-          currentUser.following.push(userToFollow.id);
-          userToFollow.followers.push(currentUser.id);
+router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
+  let currentUser = await User.findById(req.user.userId);
+  let userToFollow = await User.findById(req.params.id);
 
-          currentUser
-            .save()
-            .then(() =>
-              userToFollow
-                .save()
-                .then(() => res.json("Followed!"))
-                .catch((err) => res.status(400).json("Error: " + err))
-            )
-            .catch((err) => res.status(400).json("Error: " + err));
+  currentUser.following.push(userToFollow.id);
+  userToFollow.followers.push(currentUser.id);
+
+  currentUser
+    .save()
+    .then(() =>
+      userToFollow
+        .save()
+        .then(() => {
+          res.json("Followed!");
         })
-        .catch((err) => res.status(400).json("Error: " + err));
-    })
+        .catch((err) => res.status(400).json("Error: " + err))
+    )
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
