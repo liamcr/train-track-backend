@@ -36,7 +36,9 @@ router.route("/add").post(authenticateJWT, (req, res) => {
 router.route("/like/:id").post(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
-      if (workout.likes.findIndex(req.user.userId) !== -1) {
+      if (
+        workout.likes.findIndex((userId) => userId === req.user.userId) !== -1
+      ) {
         res
           .status(400)
           .json(
@@ -49,6 +51,22 @@ router.route("/like/:id").post(authenticateJWT, (req, res) => {
         .save()
         .then(() => res.json("Post liked!"))
         .catch((err) => res.status(400).json("Error: " + err));
+    })
+    .catch((err) => res.status(404).json("Error: " + err));
+});
+
+router.route("/unlike/:id").post(authenticateJWT, (req, res) => {
+  Workout.findById(req.params.id)
+    .then((workout) => {
+      if (
+        workout.likes.findIndex((userId) => userId === req.user.userId) === -1
+      ) {
+        res
+          .status(400)
+          .json(
+            "Error: User is attempting to unlike something they have not already liked"
+          );
+      }
     })
     .catch((err) => res.status(404).json("Error: " + err));
 });

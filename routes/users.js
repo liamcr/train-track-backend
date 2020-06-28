@@ -51,8 +51,10 @@ router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
           // If a user if trying to follow someone they are already following,
           // respond with "Bad Request"
           if (
-            currentUser.following.findIndex(userToFollow.id) !== -1 ||
-            userToFollow.followers.findIndex(currentUser.id) !== -1
+            currentUser.following.findIndex((id) => id === userToFollow.id) !==
+              -1 ||
+            userToFollow.followers.findIndex((id) => id === currentUser.id) !==
+              -1
           ) {
             res
               .status(400)
@@ -97,8 +99,12 @@ router.route("/unfollow/:id").post(authenticateJWT, async (req, res) => {
           // If a user if trying to unfollow someone they aren't already following,
           // respond with "Bad Request"
           if (
-            currentUser.following.findIndex(userToUnfollow.id) === -1 ||
-            userToUnfollow.followers.findIndex(currentUser.id) === -1
+            currentUser.following.findIndex(
+              (id) => id === userToUnfollow.id
+            ) === -1 ||
+            userToUnfollow.followers.findIndex(
+              (id) => id === currentUser.id
+            ) === -1
           ) {
             res
               .status(400)
