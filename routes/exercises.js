@@ -6,7 +6,7 @@ const authenticateJWT = require("../middleware/authenticate");
 router.route("/:id").get(authenticateJWT, (req, res) => {
   Exercise.findById(req.params.id)
     .then((exercise) => res.json(exercise))
-    .catch((err) => res.status(400).json("Error: " + err));
+    .catch((err) => res.sendStatus(404));
 });
 
 router.route("/add").post((req, res) => {
