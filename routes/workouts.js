@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Workout = require("../models/workout.model");
+const Exercise = require("../models/exercise.model");
 const authenticateJWT = require("../middleware/authenticate");
 
 router.route("/:id").get(authenticateJWT, (req, res) => {
@@ -113,6 +114,31 @@ router.route("/update/:id").put(authenticateJWT, (req, res) => {
 router.route("/:id").delete(authenticateJWT, (req, res) => {
   Workout.findByIdAndDelete(req.params.id)
     .then(() => res.json("Workout deleted."))
+    .catch((err) => res.status(404).json("Error: " + err));
+});
+
+router.route("/exercise/:id").delete(authenticateJWT, (req, res) => {
+  Workout.findById(req.body.workoutId)
+    .then((workout) => {
+      if (workout.exerciseIds.findIndex((id) => id === req.params.id) === -1) {
+        res.status(404).json("Error: Exercise not found in given workout");
+      }
+
+      workout.exerciseIds = workout.exerciseIds.filter((exerciseId) => {
+        exerciseId !== req.params.id;
+      });
+
+      workout
+        .save()
+        .then(() => {
+          Exercise.findByIdAndDelete(req.params.id)
+            .then(() => {
+              res.json("Exercise deleted.");
+            })
+            .catch((err) => res.status(404).json("Error: " + err));
+        })
+        .catch((err) => res.status(400).json("Error: " + err));
+    })
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
