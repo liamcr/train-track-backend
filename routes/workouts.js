@@ -67,6 +67,12 @@ router.route("/unlike/:id").post(authenticateJWT, (req, res) => {
             "Error: User is attempting to unlike something they have not already liked"
           );
       }
+      workout.likes = workout.likes.filter((id) => id !== req.user.userId);
+
+      workout
+        .save()
+        .then(() => res.json("Post unliked!"))
+        .catch((err) => res.status(400).json("Error: " + err));
     })
     .catch((err) => res.status(404).json("Error: " + err));
 });
