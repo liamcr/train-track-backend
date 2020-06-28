@@ -15,7 +15,7 @@ router.route("/user/:id").get(authenticateJWT, (req, res) => {
 });
 
 router.route("/add").post(authenticateJWT, (req, res) => {
-  const userId = req.body.userId;
+  const userId = req.user.userId;
   const name = req.body.name;
   const description = req.body.description;
   const date = req.body.date;
