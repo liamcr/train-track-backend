@@ -8,10 +8,10 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
-router.route("/user/:id").get((req, res) => {
+router.route("/user/:id").get(authenticateJWT, (req, res) => {
   Workout.find({ user: req.params.id })
     .then((workouts) => res.json(workouts.sort((a, b) => b.date - a.date)))
-    .catch((err) => res.status(400).json("Error: " + err));
+    .catch((err) => res.status(404).json("Error: " + err));
 });
 
 router.route("/add").post((req, res) => {
