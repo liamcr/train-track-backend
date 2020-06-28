@@ -1,10 +1,11 @@
 const router = require("express").Router();
 const Workout = require("../models/workout.model");
+const authenticateJWT = require("../middleware/authenticate");
 
-router.route("/:id").get((req, res) => {
+router.route("/:id").get(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => res.json(workout))
-    .catch((err) => res.status(400).json("Error: " + err));
+    .catch((err) => res.status(404).json("Error: " + err));
 });
 
 router.route("/user/:id").get((req, res) => {
