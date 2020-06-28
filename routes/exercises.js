@@ -9,7 +9,7 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
     .catch((err) => res.sendStatus(404));
 });
 
-router.route("/add").post((req, res) => {
+router.route("/add").post(authenticateJWT, (req, res) => {
   const workoutId = req.body.workoutId;
   const name = req.body.name;
   const description = req.body.description;
@@ -24,14 +24,27 @@ router.route("/add").post((req, res) => {
   newExercise
     .save()
     .then(() => {
-      Workout.findById(workoutId).then((workout) => {
-        workout.exerciseIds.push(newExercise.id);
+      Workout.findById(workoutId)
+        .then((workout) => {
+          if (
+            workout.exerciseIds.findIndex(
+              (exerciseId) => exerciseId === newExercise.id
+            ) !== -1
+          ) {
+            res
+              .status(400)
+              .json(
+                "Error: User is attempting to add an exercise that is already in the workout"
+              );
+          }
+          workout.exerciseIds.push(newExercise.id);
 
-        workout
-          .save()
-          .then(() => res.json("Exercise successfully created!"))
-          .catch((err) => res.status(400).json("Error: " + err));
-      });
+          workout
+            .save()
+            .then(() => res.json("Exercise successfully created!"))
+            .catch((err) => res.status(400).json("Error: " + err));
+        })
+        .catch((err) => res.sendStatus(404));
     })
     .catch((err) => res.status(400).json("Error: " + err));
 });
