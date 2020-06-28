@@ -77,11 +77,11 @@ router.route("/unlike/:id").post(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
-router.route("/comment/:id").post((req, res) => {
+router.route("/comment/:id").post(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
       const comment = {
-        userId: req.body.userId,
+        userId: req.user.userId,
         comment: req.body.comment,
       };
 
@@ -92,7 +92,7 @@ router.route("/comment/:id").post((req, res) => {
         .then(() => res.json("Comment posted!"))
         .catch((err) => res.status(400).json("Error: " + err));
     })
-    .catch((err) => res.status(400).json("Error: " + err));
+    .catch((err) => res.status(404).json("Error: " + err));
 });
 
 router.route("/update/:id").put((req, res) => {
