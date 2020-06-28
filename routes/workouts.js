@@ -14,7 +14,7 @@ router.route("/user/:id").get(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
-router.route("/add").post((req, res) => {
+router.route("/add").post(authenticateJWT, (req, res) => {
   const userId = req.body.userId;
   const name = req.body.name;
   const description = req.body.description;
