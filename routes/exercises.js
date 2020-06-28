@@ -64,10 +64,4 @@ router.route("/update/:id").put(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
-router.route("/:id").delete(authenticateJWT, (req, res) => {
-  Exercise.findByIdAndDelete(req.params.id)
-    .then(() => res.json("Exercise deleted."))
-    .catch((err) => res.status(404).json("Error: " + err));
-});
-
 module.exports = router;
