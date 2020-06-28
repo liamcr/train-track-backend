@@ -6,7 +6,7 @@ const authenticateJWT = require("../middleware/authenticate");
 router.route("/:id").get(authenticateJWT, (req, res) => {
   Exercise.findById(req.params.id)
     .then((exercise) => res.json(exercise))
-    .catch((err) => res.sendStatus(404));
+    .catch((err) => res.status(404).json("Error: " + err));
 });
 
 router.route("/add").post(authenticateJWT, (req, res) => {
@@ -44,7 +44,7 @@ router.route("/add").post(authenticateJWT, (req, res) => {
             .then(() => res.json("Exercise successfully created!"))
             .catch((err) => res.status(400).json("Error: " + err));
         })
-        .catch((err) => res.sendStatus(404));
+        .catch((err) => res.status(404).json("Error: " + err));
     })
     .catch((err) => res.status(400).json("Error: " + err));
 });
@@ -61,13 +61,13 @@ router.route("/update/:id").put(authenticateJWT, (req, res) => {
         .then(() => res.json("Exercise updated!"))
         .catch((err) => res.status(400).json("Error: " + err));
     })
-    .catch((err) => res.sendStatus(404));
+    .catch((err) => res.status(404).json("Error: " + err));
 });
 
-router.route("/:id").delete((req, res) => {
+router.route("/:id").delete(authenticateJWT, (req, res) => {
   Exercise.findByIdAndDelete(req.params.id)
     .then(() => res.json("Exercise deleted."))
-    .catch((err) => res.status(400).json("Error: " + err));
+    .catch((err) => res.status(404).json("Error: " + err));
 });
 
 module.exports = router;
