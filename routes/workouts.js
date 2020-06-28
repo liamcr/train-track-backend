@@ -95,7 +95,7 @@ router.route("/comment/:id").post(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
-router.route("/update/:id").put((req, res) => {
+router.route("/update/:id").put(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
       workout.name = req.body.name;
@@ -107,7 +107,7 @@ router.route("/update/:id").put((req, res) => {
         .then(() => res.json("Workout updated!"))
         .catch((err) => res.status(400).json("Error: " + err));
     })
-    .catch((err) => res.status(400).json("Error: " + err));
+    .catch((err) => res.status(404).json("Error: " + err));
 });
 
 router.route("/:id").delete((req, res) => {
