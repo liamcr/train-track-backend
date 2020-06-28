@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const Exercise = require("../models/exercise.model");
 const Workout = require("../models/workout.model");
+const authenticateJWT = require("../middleware/authenticate");
 
-router.route("/:id").get((req, res) => {
+router.route("/:id").get(authenticateJWT, (req, res) => {
   Exercise.findById(req.params.id)
     .then((exercise) => res.json(exercise))
     .catch((err) => res.status(400).json("Error: " + err));
