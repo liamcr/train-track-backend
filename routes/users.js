@@ -29,7 +29,7 @@ router.route("/register").post((req, res) => {
 
 router.route("/login").post((req, res) => {
   User.findOne({ username: req.body.username }, (err, user) => {
-    if (!user.validPassword(req.body.password)) {
+    if (err || user === null || !user.validPassword(req.body.password)) {
       res.status(401).json("Error: Username or password does not match");
     } else {
       const accessToken = jwt.sign(
@@ -39,9 +39,7 @@ router.route("/login").post((req, res) => {
 
       res.json({ accessToken: accessToken });
     }
-  }).catch((err) =>
-    res.status(401).json(`Error: Username or password does not match`)
-  );
+  }).catch((err) => res.status(400).json(`Error: ${err}`));
 });
 
 router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
