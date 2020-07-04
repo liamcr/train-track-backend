@@ -37,10 +37,8 @@ router.route("/add").post(authenticateJWT, (req, res) => {
 router.route("/like/:id").post(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
-      if (
-        workout.likes.findIndex((userId) => userId === req.user.userId) !== -1
-      ) {
-        res
+      if (workout.likes.includes(req.user.userId)) {
+        return res
           .status(400)
           .json(
             "Error: User is attempting to like something they have already liked"
@@ -59,16 +57,16 @@ router.route("/like/:id").post(authenticateJWT, (req, res) => {
 router.route("/unlike/:id").post(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
-      if (
-        workout.likes.findIndex((userId) => userId === req.user.userId) === -1
-      ) {
-        res
+      if (!workout.likes.includes(req.user.userId)) {
+        return res
           .status(400)
           .json(
             "Error: User is attempting to unlike something they have not already liked"
           );
       }
-      workout.likes = workout.likes.filter((id) => id !== req.user.userId);
+      workout.likes = workout.likes.filter(
+        (id) => id.toString() !== req.user.userId
+      );
 
       workout
         .save()
@@ -99,9 +97,13 @@ router.route("/comment/:id").post(authenticateJWT, (req, res) => {
 router.route("/update/:id").put(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
-      workout.name = req.body.name;
-      workout.description = req.body.description;
-      workout.date = req.body.date;
+      if (workout.user.toString() !== req.user.userId) {
+        return res.sendStatus(403);
+      }
+
+      if (req.body.name) workout.name = req.body.name;
+      if (req.body.description) workout.description = req.body.description;
+      if (req.body.date) workout.date = req.body.date;
 
       workout
         .save()
@@ -112,8 +114,22 @@ router.route("/update/:id").put(authenticateJWT, (req, res) => {
 });
 
 router.route("/:id").delete(authenticateJWT, (req, res) => {
-  Workout.findByIdAndDelete(req.params.id)
-    .then(() => res.json("Workout deleted."))
+  Workout.findById(req.params.id)
+    .then((workout) => {
+      if (workout.user.toString() !== req.user.userId) {
+        return res.sendStatus(403);
+      }
+
+      Exercise.deleteMany({ _id: { $in: workout.exerciseIds } })
+        .then(() => {
+          Workout.findByIdAndDelete(req.params.id)
+            .then(() => {
+              res.json("Workout deleted");
+            })
+            .catch((err) => res.status(404).json("Error: " + err));
+        })
+        .catch((err) => res.status(400).json("Error: " + err));
+    })
     .catch((err) => res.status(404).json("Error: " + err));
 });
 

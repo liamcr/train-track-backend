@@ -50,12 +50,10 @@ router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
           // If a user if trying to follow someone they are already following,
           // respond with "Bad Request"
           if (
-            currentUser.following.findIndex((id) => id === userToFollow.id) !==
-              -1 ||
-            userToFollow.followers.findIndex((id) => id === currentUser.id) !==
-              -1
+            currentUser.following.includes(userToFollow.id) ||
+            userToFollow.followers.includes(currentUser.id)
           ) {
-            res
+            return res
               .status(400)
               .json(
                 "Error: User is attempting to follow someone they already follow"
@@ -98,14 +96,10 @@ router.route("/unfollow/:id").post(authenticateJWT, async (req, res) => {
           // If a user if trying to unfollow someone they aren't already following,
           // respond with "Bad Request"
           if (
-            currentUser.following.findIndex(
-              (id) => id === userToUnfollow.id
-            ) === -1 ||
-            userToUnfollow.followers.findIndex(
-              (id) => id === currentUser.id
-            ) === -1
+            !currentUser.following.includes(userToUnfollow.id) ||
+            !userToUnfollow.followers.includes(currentUser.id)
           ) {
-            res
+            return res
               .status(400)
               .json(
                 "Error: User is attempting to unfollow someone they don't yet follow"
@@ -113,10 +107,10 @@ router.route("/unfollow/:id").post(authenticateJWT, async (req, res) => {
           }
 
           currentUser.following = currentUser.following.filter(
-            (userFollowed) => userFollowed !== userToUnfollow.id
+            (userFollowed) => userFollowed.toString() !== userToUnfollow.id
           );
           userToUnfollow.followers = userToUnfollow.followers.filter(
-            (follower) => follower !== currentUser.id
+            (follower) => follower.toString() !== currentUser.id
           );
 
           currentUser
@@ -145,8 +139,8 @@ router.route("/unfollow/:id").post(authenticateJWT, async (req, res) => {
 });
 
 router.route("/timeline").get(authenticateJWT, (req, res) => {
-  const limit = req.body.limit ? req.body.limit : 10;
-  const offset = req.body.offset ? req.body.offset : 0;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+  const offset = req.query.offset ? parseInt(req.query.offset) : 0;
 
   if (!Number.isInteger(limit) || !Number.isInteger(offset)) {
     res.status(400).json("Error: limit and offset params must be integers");

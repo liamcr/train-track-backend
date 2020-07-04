@@ -16,6 +16,7 @@ router.route("/add").post(authenticateJWT, (req, res) => {
   const sets = req.body.sets;
 
   const newExercise = new Exercise({
+    user: req.user.userId,
     name: name,
     description: description,
     sets: sets,
@@ -26,12 +27,12 @@ router.route("/add").post(authenticateJWT, (req, res) => {
     .then(() => {
       Workout.findById(workoutId)
         .then((workout) => {
-          if (
-            workout.exerciseIds.findIndex(
-              (exerciseId) => exerciseId === newExercise.id
-            ) !== -1
-          ) {
-            res
+          if (workout.user.toString() !== req.user.userId) {
+            return res.sendStatus(403);
+          }
+
+          if (workout.exerciseIds.includes(newExercise.id)) {
+            return res
               .status(400)
               .json(
                 "Error: User is attempting to add an exercise that is already in the workout"
@@ -52,9 +53,13 @@ router.route("/add").post(authenticateJWT, (req, res) => {
 router.route("/update/:id").put(authenticateJWT, (req, res) => {
   Exercise.findById(req.params.id)
     .then((exercise) => {
-      exercise.name = req.body.name;
-      exercise.description = req.body.description;
-      exercise.sets = req.body.sets;
+      if (exercise.user.toString() !== req.user.userId) {
+        return res.sendStatus(403);
+      }
+
+      if (req.body.name) exercise.name = req.body.name;
+      if (req.body.description) exercise.description = req.body.description;
+      if (req.body.sets) exercise.sets = req.body.sets;
 
       exercise
         .save()

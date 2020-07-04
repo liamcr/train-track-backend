@@ -4,6 +4,10 @@ const Schema = mongoose.Schema;
 
 const exerciseSchema = new Schema(
   {
+    user: {
+      type: mongoose.ObjectId,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
