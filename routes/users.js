@@ -35,7 +35,8 @@ router.route("/login").post((req, res) => {
     } else {
       const accessToken = jwt.sign(
         { userId: user.id },
-        process.env.TOKEN_SECRET
+        process.env.TOKEN_SECRET,
+        { expiresIn: "2h" }
       );
 
       res.json({ accessToken: accessToken });
