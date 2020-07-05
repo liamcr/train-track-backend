@@ -15,7 +15,8 @@ router.route("/register").post((req, res) => {
     .then(() => {
       const accessToken = jwt.sign(
         { userId: newUser.id },
-        process.env.TOKEN_SECRET
+        process.env.TOKEN_SECRET,
+        { expiresIn: "2h" }
       );
 
       res.json({ accessToken: accessToken });
