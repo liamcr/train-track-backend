@@ -151,7 +151,7 @@ router.route("/timeline").get(authenticateJWT, (req, res) => {
   User.findById(req.user.userId)
     .then((currentUser) => {
       Workout.find({
-        user: { $in: currentUser.following },
+        user: { $in: [...currentUser.following, req.user.userId] },
       })
         .then((workouts) => {
           let timeline = workouts
