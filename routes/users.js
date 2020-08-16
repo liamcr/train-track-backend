@@ -4,6 +4,13 @@ const User = require("../models/user.model");
 const Workout = require("../models/workout.model");
 const authenticateJWT = require("../middleware/authenticate");
 
+router.route("/:id").get(authenticateJWT, (req, res) => {
+  User.findById(req.params.id)
+    .select("-password")
+    .then((user) => res.json(user))
+    .catch((err) => res.status(404).json("Error: " + err));
+});
+
 router.route("/register").post((req, res) => {
   let newUser = User({
     username: req.body.username,
@@ -44,7 +51,7 @@ router.route("/login").post((req, res) => {
   }).catch((err) => res.status(400).json(`Error: ${err}`));
 });
 
-router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
+router.route("/follow/:id").post(authenticateJWT, (req, res) => {
   User.findById(req.user.userId)
     .then((currentUser) => {
       User.findById(req.params.id)
@@ -90,7 +97,7 @@ router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
     );
 });
 
-router.route("/unfollow/:id").post(authenticateJWT, async (req, res) => {
+router.route("/unfollow/:id").post(authenticateJWT, (req, res) => {
   User.findById(req.user.userId)
     .then((currentUser) => {
       User.findById(req.params.id)
