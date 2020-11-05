@@ -30,7 +30,7 @@ router.route("/add").post(authenticateJWT, (req, res) => {
 
   newWorkout
     .save()
-    .then(() => res.json("Workout added!"))
+    .then(() => res.json({ workout: newWorkout }))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
