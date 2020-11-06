@@ -10,6 +10,13 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
+router.route("/me").get(authenticateJWT, (req, res) => {
+  User.findById(req.user.userId)
+    .select("-password")
+    .then((user) => res.json(user))
+    .catch((err) => res.status(404).json("Error: " + err));
+});
+
 router.route("/register").post((req, res) => {
   let newUser = User({
     username: req.body.username,
