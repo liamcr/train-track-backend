@@ -10,13 +10,6 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
-router.route("/me").get(authenticateJWT, (req, res) => {
-  User.findById(req.user.userId)
-    .select("-password")
-    .then((user) => res.json(user))
-    .catch((err) => res.status(404).json("Error: " + err));
-});
-
 router.route("/register").post((req, res) => {
   let newUser = User({
     username: req.body.username,
@@ -32,7 +25,7 @@ router.route("/register").post((req, res) => {
         { expiresIn: "2h" }
       );
 
-      res.json({ accessToken: accessToken });
+      res.json({ accessToken: accessToken, userId: newUser.id });
     })
     .catch((err) =>
       res
@@ -52,7 +45,7 @@ router.route("/login").post((req, res) => {
         { expiresIn: "2h" }
       );
 
-      res.json({ accessToken: accessToken });
+      res.json({ accessToken: accessToken, userId: newUser.id });
     }
   }).catch((err) => res.status(400).json(`Error: ${err}`));
 });
