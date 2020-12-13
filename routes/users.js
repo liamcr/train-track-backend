@@ -3,10 +3,29 @@ const router = require("express").Router();
 const User = require("../models/user.model");
 const authenticateJWT = require("../middleware/authenticate");
 
+router.route("/").get(authenticateJWT, (req, res) => {
+  User.findById(req.user.userId)
+    .select("-password")
+    .then((user) => res.json(user))
+    .catch((err) => res.status(404).json("Error: " + err));
+});
+
 router.route("/:id").get(authenticateJWT, (req, res) => {
   User.findById(req.params.id)
     .select("-password")
-    .then((user) => res.json(user))
+    .then((user) => {
+      let response =
+        user._id.toString() !== req.user.userId
+          ? {
+              ...user._doc,
+              isFollowing: user.followers.includes(req.user.userId),
+            }
+          : {
+              ...user._doc,
+            };
+
+      res.json(response);
+    })
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
@@ -25,7 +44,7 @@ router.route("/register").post((req, res) => {
         { expiresIn: "2h" }
       );
 
-      res.json({ accessToken: accessToken, userId: newUser.id });
+      res.json({ accessToken: accessToken });
     })
     .catch((err) =>
       res
@@ -45,7 +64,7 @@ router.route("/login").post((req, res) => {
         { expiresIn: "2h" }
       );
 
-      res.json({ accessToken: accessToken, userId: newUser.id });
+      res.json({ accessToken: accessToken });
     }
   }).catch((err) => res.status(400).json(`Error: ${err}`));
 });
