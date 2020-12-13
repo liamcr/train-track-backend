@@ -12,6 +12,7 @@ router.route("/").get(authenticateJWT, (req, res) => {
   }
 
   User.find({ username: { $regex: req.query.search, $options: "i" } })
+    .select("-password")
     .then((users) => {
       res.json(users);
     })
