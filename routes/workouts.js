@@ -11,7 +11,16 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
 
 router.route("/user/:id").get(authenticateJWT, (req, res) => {
   Workout.find({ user: req.params.id })
-    .then((workouts) => res.json(workouts.sort((a, b) => b.date - a.date)))
+    .then((workouts) => {
+      let timeline = workouts
+        .sort((a, b) => b.date - a.date)
+        .map((workout) => ({
+          ...workout._doc,
+          liked: workout.likes.includes(req.user.userId),
+        }));
+
+      res.json(timeline);
+    })
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
