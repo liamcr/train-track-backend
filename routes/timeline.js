@@ -19,7 +19,11 @@ router.route("/").get(authenticateJWT, (req, res) => {
         .then((workouts) => {
           let timeline = workouts
             .sort((a, b) => b.date - a.date)
-            .slice(offset, offset + limit);
+            .slice(offset, offset + limit)
+            .map((workout) => ({
+              ...workout._doc,
+              liked: workout.likes.includes(req.user.userId),
+            }));
 
           res.json(timeline);
         })

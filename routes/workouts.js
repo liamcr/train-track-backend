@@ -46,6 +46,8 @@ router.route("/like/:id").post(authenticateJWT, (req, res) => {
       }
       workout.likes.push(req.user.userId);
 
+      // Note: The response message "post liked" is used in the frontend logic
+      // so be careful when changing this
       workout
         .save()
         .then(() => res.json("Post liked!"))
@@ -68,6 +70,8 @@ router.route("/unlike/:id").post(authenticateJWT, (req, res) => {
         (id) => id.toString() !== req.user.userId
       );
 
+      // Note: The response message "post unliked" is used in the frontend logic
+      // so be careful when changing this
       workout
         .save()
         .then(() => res.json("Post unliked!"))
