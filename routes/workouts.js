@@ -5,7 +5,12 @@ const authenticateJWT = require("../middleware/authenticate");
 
 router.route("/:id").get(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
-    .then((workout) => res.json(workout))
+    .then((workout) => {
+      res.json({
+        ...workout._doc,
+        liked: workout.likes.includes(req.user.userId),
+      });
+    })
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
