@@ -27,6 +27,11 @@ const userSchema = new Schema({
     required: true,
     default: [],
   },
+  displayImage: {
+    type: String,
+    required: true,
+    default: "",
+  },
 });
 
 userSchema.methods.generateHash = function (password) {
