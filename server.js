@@ -23,12 +23,14 @@ const workoutsRouter = require("./routes/workouts");
 const usersRouter = require("./routes/users");
 const timelineRouter = require("./routes/timeline");
 const searchRouter = require("./routes/search");
+const uploadRouter = require("./routes/upload");
 
 app.use("/workouts", workoutsRouter);
 app.use("/exercises", exercisesRouter);
 app.use("/users", usersRouter);
 app.use("/timeline", timelineRouter);
 app.use("/search", searchRouter);
+app.use("/upload", uploadRouter);
 
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
