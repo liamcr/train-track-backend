@@ -165,4 +165,25 @@ router.route("/unfollow/:id").post(authenticateJWT, (req, res) => {
     );
 });
 
+router.route("/update").post(authenticateJWT, (req, res) => {
+  User.findById(req.user.userId)
+    .then((currentUser) => {
+      currentUser.username = req.body.username;
+
+      currentUser
+        .save()
+        .then(() => {
+          res.json("User Updated");
+        })
+        .catch((err) => {
+          res.status(400).json("Error: Display name is already taken");
+        });
+    })
+    .catch((err) =>
+      res
+        .status(404)
+        .json(`Error: Could not find user with id ${req.params.id}`)
+    );
+});
+
 module.exports = router;

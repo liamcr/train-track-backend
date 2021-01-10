@@ -4,8 +4,12 @@ const Workout = require("../models/workout.model");
 const authenticateJWT = require("../middleware/authenticate");
 
 router.route("/:id").get(authenticateJWT, (req, res) => {
-  Exercise.findById(req.params.id)
-    .then((exercise) => res.json(exercise))
+  const parsedIds = req.params.id.split(",");
+
+  Exercise.find()
+    .where("_id")
+    .in(parsedIds)
+    .then((exercises) => res.json(exercises))
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
