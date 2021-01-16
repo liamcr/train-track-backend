@@ -106,7 +106,9 @@ router.route("/comment/:id").post(authenticateJWT, (req, res) => {
 
       workout
         .save()
-        .then(() => res.json("Comment posted!"))
+        .then((workout) =>
+          res.json(workout.comments[workout.comments.length - 1])
+        )
         .catch((err) => res.status(400).json("Error: " + err));
     })
     .catch((err) => res.status(404).json("Error: " + err));
