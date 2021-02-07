@@ -15,10 +15,18 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
 });
 
 router.route("/user/:id").get(authenticateJWT, (req, res) => {
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+  const offset = req.query.offset ? parseInt(req.query.offset) : 0;
+
+  if (!Number.isInteger(limit) || !Number.isInteger(offset)) {
+    res.status(400).json("Error: limit and offset params must be integers");
+  }
+
   Workout.find({ user: req.params.id })
     .then((workouts) => {
       let timeline = workouts
         .sort((a, b) => b.date - a.date)
+        .slice(offset, offset + limit)
         .map((workout) => ({
           ...workout._doc,
           liked: workout.likes.includes(req.user.userId),

@@ -7,7 +7,9 @@ router.route("/").get(authenticateJWT, (req, res) => {
   User.findById(req.user.userId)
     .select("-password")
     .then((user) => res.json(user))
-    .catch((err) => res.status(404).json("Error: " + err));
+    .catch((err) =>
+      res.status(404).json(`Cannot find user with id ${req.user.userId}`)
+    );
 });
 
 router.route("/:id").get(authenticateJWT, (req, res) => {
@@ -26,7 +28,9 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
 
       res.json(response);
     })
-    .catch((err) => res.status(404).json("Error: " + err));
+    .catch((err) =>
+      res.status(404).json(`Cannot find user with id ${req.params.id}`)
+    );
 });
 
 router.route("/register").post((req, res) => {
