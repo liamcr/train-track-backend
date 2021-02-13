@@ -3,6 +3,7 @@ const authenticateJWT = require("../middleware/authenticate");
 const AWS = require("aws-sdk");
 const Busboy = require("busboy");
 const User = require("../models/user.model");
+const sharp = require("sharp");
 
 const ID = process.env.AWSAccessKeyId;
 const SECRET = process.env.AWSSecretKey;
@@ -35,25 +36,39 @@ router.route("/").post(authenticateJWT, async (req, res) => {
   busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
     const suffix = filename.split(".")[filename.split(".").length - 1];
 
-    const params = {
-      Bucket: BUCKET_NAME,
-      Key: `${generateUUID()}.${suffix}`,
-      Body: file,
-      ACL: "public-read",
-    };
+    const imageResizer = sharp().rotate().resize(500, 500, { fit: "cover" });
 
-    s3.upload(params, function (err, data) {
+    // Portrait images >500px in height are stretched on chrome, so the
+    // images must be resized as they are uploaded
+    file.pipe(imageResizer).toBuffer((err, buffer, info) => {
       if (err) {
         res.status(500).json("Error: " + err);
       }
 
-      User.findByIdAndUpdate(req.user.userId, { displayImage: data.Location })
-        .then(() => {
-          res.json("Image successfully uploaded");
-        })
-        .catch((err) => {
+      console.log(info.height);
+
+      const params = {
+        Bucket: BUCKET_NAME,
+        Key: `${generateUUID()}.${suffix}`,
+        Body: buffer,
+        ACL: "public-read",
+      };
+
+      s3.upload(params, function (err, data) {
+        if (err) {
           res.status(500).json("Error: " + err);
-        });
+        }
+
+        User.findByIdAndUpdate(req.user.userId, {
+          displayImage: data.Location,
+        })
+          .then(() => {
+            res.json("Image successfully uploaded");
+          })
+          .catch((err) => {
+            res.status(500).json("Error: " + err);
+          });
+      });
     });
   });
 });
