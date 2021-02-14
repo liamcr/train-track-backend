@@ -45,8 +45,6 @@ router.route("/").post(authenticateJWT, async (req, res) => {
         res.status(500).json("Error: " + err);
       }
 
-      console.log(info.height);
-
       const params = {
         Bucket: BUCKET_NAME,
         Key: `${generateUUID()}.${suffix}`,
@@ -58,6 +56,8 @@ router.route("/").post(authenticateJWT, async (req, res) => {
         if (err) {
           res.status(500).json("Error: " + err);
         }
+
+        console.log(data.Location);
 
         User.findByIdAndUpdate(req.user.userId, {
           displayImage: data.Location,
