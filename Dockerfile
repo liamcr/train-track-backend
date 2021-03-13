@@ -8,4 +8,6 @@ RUN npm i
 
 COPY . .
 
+ENV PORT=5000
+
 CMD node server.js

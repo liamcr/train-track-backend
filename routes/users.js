@@ -16,15 +16,10 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
   User.findById(req.params.id)
     .select("-password")
     .then((user) => {
-      let response =
-        user._id.toString() !== req.user.userId
-          ? {
-              ...user._doc,
-              isFollowing: user.followers.includes(req.user.userId),
-            }
-          : {
-              ...user._doc,
-            };
+      let response = {
+        ...user._doc,
+        isFollowing: user.followers.includes(req.user.userId),
+      };
 
       res.json(response);
     })
