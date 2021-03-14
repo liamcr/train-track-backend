@@ -59,14 +59,57 @@ router.route("/").post(authenticateJWT, async (req, res) => {
 
         console.log(data.Location);
 
-        User.findByIdAndUpdate(req.user.userId, {
-          displayImage: data.Location,
-        })
-          .then(() => {
-            res.json("Image successfully uploaded");
+        User.findById(req.user.userId)
+          .then((user) => {
+            const currentDisplayPictureName = user.displayImage
+              .split("/")
+              .pop();
+
+            User.findByIdAndUpdate(req.user.userId, {
+              displayImage: data.Location,
+            })
+              .then(() => {
+                if (currentDisplayPictureName === "") {
+                  res.status(201).send("Image successfully uploaded");
+                  return;
+                }
+
+                const getParams = {
+                  Bucket: BUCKET_NAME,
+                  Key: currentDisplayPictureName,
+                };
+
+                s3.getObject(getParams, (err, data) => {
+                  if (err) {
+                    console.error(
+                      `Image with name ${currentDisplayPictureName} not found`
+                    );
+
+                    res.json("Image successfully uploaded");
+                  } else {
+                    const deleteParams = {
+                      Bucket: BUCKET_NAME,
+                      Key: currentDisplayPictureName,
+                    };
+
+                    s3.deleteObject(deleteParams, (err, data) => {
+                      if (err) {
+                        console.error(
+                          "There was a problem deleting the previous display image"
+                        );
+                      }
+
+                      res.json("Image successfuly uploaded");
+                    });
+                  }
+                });
+              })
+              .catch((err) => {
+                res.status(500).json("Error: " + err);
+              });
           })
           .catch((err) => {
-            res.status(500).json("Error: " + err);
+            res.status(500).json("Error: User not found");
           });
       });
     });
