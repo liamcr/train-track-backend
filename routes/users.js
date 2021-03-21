@@ -2,6 +2,19 @@ const jwt = require("jsonwebtoken");
 const router = require("express").Router();
 const User = require("../models/user.model");
 const authenticateJWT = require("../middleware/authenticate");
+const Workout = require("../models/workout.model");
+const Exercise = require("../models/exercise.model");
+const AWS = require("aws-sdk");
+
+const ID = process.env.AWSAccessKeyId;
+const SECRET = process.env.AWSSecretKey;
+
+const BUCKET_NAME = "train-track-images";
+
+const s3 = new AWS.S3({
+  accessKeyId: ID,
+  secretAccessKey: SECRET,
+});
 
 router.route("/").get(authenticateJWT, (req, res) => {
   User.findById(req.user.userId)
@@ -183,6 +196,55 @@ router.route("/update").post(authenticateJWT, (req, res) => {
         .status(404)
         .json(`Error: Could not find user with id ${req.params.id}`)
     );
+});
+
+router.route("/").delete(authenticateJWT, (req, res) => {
+  Workout.find({ user: req.user.userId })
+    .then(async (workouts) => {
+      for (let workout of workouts) {
+        try {
+          await Exercise.deleteMany({
+            _id: {
+              $in: workout.exerciseIds,
+            },
+          });
+        } catch (err) {
+          res.status(500).json("Error: " + err);
+          return;
+        }
+      }
+
+      try {
+        await Workout.deleteMany({ user: req.user.userId });
+      } catch (err) {
+        res.status(500).json("Error: " + err);
+        return;
+      }
+
+      User.findByIdAndDelete(req.user.userId)
+        .then((deletedUser) => {
+          if (deletedUser.displayImage !== "") {
+            const deleteParams = {
+              Bucket: BUCKET_NAME,
+              Key: deletedUser.displayImage,
+            };
+
+            s3.deleteObject(deleteParams, (err, data) => {
+              if (err) {
+                console.error(
+                  "There was a problem deleting the previous display image"
+                );
+              }
+
+              res.json("User successfuly deleted");
+            });
+          } else {
+            res.json("User successfuly deleted");
+          }
+        })
+        .catch((err) => res.status(500).json("Error: " + err));
+    })
+    .catch((err) => res.status(404).json("Error: " + err));
 });
 
 module.exports = router;

@@ -19,41 +19,10 @@ const workoutSchema = new Schema(
       trim: true,
       maxlength: 256,
     },
-    exerciseIds: {
-      type: [mongoose.ObjectId],
-      required: true,
-      default: [],
-    },
     date: {
       type: Date,
       required: true,
       default: Date.now(),
-    },
-    likes: {
-      type: [mongoose.ObjectId],
-      required: true,
-      default: [],
-    },
-    comments: {
-      type: [
-        {
-          userId: {
-            type: mongoose.ObjectId,
-            required: true,
-          },
-          comment: {
-            type: String,
-            required: true,
-          },
-          date: {
-            type: Date,
-            required: true,
-            default: Date.now(),
-          },
-        },
-      ],
-      required: true,
-      default: [],
     },
   },
   {

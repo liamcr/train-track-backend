@@ -17,16 +17,6 @@ const userSchema = new Schema({
     required: true,
     minlength: 3,
   },
-  followers: {
-    type: [mongoose.ObjectId],
-    required: true,
-    default: [],
-  },
-  following: {
-    type: [mongoose.ObjectId],
-    required: true,
-    default: [],
-  },
   displayImage: {
     type: String,
     default: "",
