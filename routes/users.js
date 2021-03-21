@@ -5,6 +5,7 @@ const authenticateJWT = require("../middleware/authenticate");
 const Workout = require("../models/workout.model");
 const Exercise = require("../models/exercise.model");
 const AWS = require("aws-sdk");
+const FollowRelation = require("../models/followRelation.model");
 
 const ID = process.env.AWSAccessKeyId;
 const SECRET = process.env.AWSSecretKey;
@@ -100,6 +101,49 @@ router.route("/update").post(authenticateJWT, (req, res) => {
         .status(404)
         .json(`Error: Could not find user with id ${req.params.id}`)
     );
+});
+
+router.route("/follow/:id").post(authenticateJWT, async (req, res) => {
+  if (req.params.id === req.user.userId) {
+    return res.status(400).json("Error: User cannot follow themselves");
+  }
+
+  const existingRelation = await FollowRelation.findOne({
+    follower: req.user.userId,
+    followee: req.params.id,
+  }).exec();
+
+  if (existingRelation !== null) {
+    return res
+      .status(400)
+      .json("Error: User is already following the other user");
+  }
+
+  const newFollowRelation = FollowRelation({
+    follower: req.user.userId,
+    followee: req.params.id,
+  });
+
+  try {
+    await newFollowRelation.save();
+
+    res.json("User successfully followed");
+  } catch (err) {
+    return res.status(500).json("Error: " + err);
+  }
+});
+
+router.route("/unfollow/:id").post(authenticateJWT, async (req, res) => {
+  try {
+    await FollowRelation.findOneAndDelete({
+      follower: req.user.userId,
+      followee: req.params.id,
+    });
+
+    res.json("User successfully unfollowed");
+  } catch (err) {
+    return res.status(500).json("Error: " + err);
+  }
 });
 
 module.exports = router;
