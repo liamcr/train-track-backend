@@ -2,7 +2,6 @@ const router = require("express").Router();
 const Workout = require("../models/workout.model");
 const Exercise = require("../models/exercise.model");
 const Comment = require("../models/comment.model");
-const Set = require("../models/set.model");
 const LikeRelation = require("../models/likeRelation.model");
 const authenticateJWT = require("../middleware/authenticate");
 
@@ -94,29 +93,6 @@ router.route("/:id").delete(authenticateJWT, async (req, res) => {
     return;
   }
 
-  const exercises = await Exercise.find({ workout: req.params.id }).exec();
-
-  console.log(`Found ${exercises.length} exercises to delete`);
-
-  let sets = [];
-
-  for (let exercise of exercises) {
-    sets.push(...(await Set.find({ exercise: exercise._id }).exec()));
-  }
-
-  console.log(`Found ${sets.length} sets to delete`);
-
-  try {
-    await Set.deleteMany({
-      _id: { $in: sets.map((setDoc) => setDoc._id) },
-    }).exec();
-  } catch (err) {
-    res.status(500).json("Error: " + err);
-    return;
-  }
-
-  console.log(`Deleted ${sets.length} sets`);
-
   try {
     await Exercise.deleteMany({
       workout: req.params.id,
@@ -126,7 +102,7 @@ router.route("/:id").delete(authenticateJWT, async (req, res) => {
     return;
   }
 
-  console.log(`Deleted ${exercises.length} exercises`);
+  console.log(`Deleted exercises`);
 
   try {
     await LikeRelation.deleteMany({

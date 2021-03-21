@@ -1,15 +1,10 @@
 const router = require("express").Router();
 const Exercise = require("../models/exercise.model");
-const Workout = require("../models/workout.model");
 const authenticateJWT = require("../middleware/authenticate");
 
 router.route("/:id").get(authenticateJWT, (req, res) => {
-  const parsedIds = req.params.id.split(",");
-
-  Exercise.find()
-    .where("_id")
-    .in(parsedIds)
-    .then((exercises) => res.json(exercises))
+  Exercise.findById(req.params.id)
+    .then((exercise) => res.json(exercise))
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
@@ -18,39 +13,20 @@ router.route("/add").post(authenticateJWT, (req, res) => {
   const name = req.body.name;
   const description = req.body.description;
   const sets = req.body.sets;
+  const index = req.body.index;
 
   const newExercise = new Exercise({
     user: req.user.userId,
-    name: name,
-    description: description,
-    sets: sets,
+    workout: workoutId,
+    name,
+    description,
+    sets,
+    index,
   });
 
   newExercise
     .save()
-    .then(() => {
-      Workout.findById(workoutId)
-        .then((workout) => {
-          if (workout.user.toString() !== req.user.userId) {
-            return res.sendStatus(403);
-          }
-
-          if (workout.exerciseIds.includes(newExercise.id)) {
-            return res
-              .status(400)
-              .json(
-                "Error: User is attempting to add an exercise that is already in the workout"
-              );
-          }
-          workout.exerciseIds.push(newExercise.id);
-
-          workout
-            .save()
-            .then(() => res.json("Exercise successfully created!"))
-            .catch((err) => res.status(400).json("Error: " + err));
-        })
-        .catch((err) => res.status(404).json("Error: " + err));
-    })
+    .then(() => res.json("Exercise successfully created!"))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
@@ -61,35 +37,15 @@ router.route("/addBulk").post(authenticateJWT, async (req, res) => {
   for (let i = 0; i < exercises.length; i++) {
     let newExercise = new Exercise({
       user: req.user.userId,
+      workout: workoutId,
       name: exercises[i].name,
       description: exercises[i].description,
       sets: exercises[i].sets,
+      index: i,
     });
 
     await newExercise
       .save()
-      .then(async () => {
-        await Workout.findById(workoutId)
-          .then(async (workout) => {
-            if (workout.user.toString() !== req.user.userId) {
-              return res.sendStatus(403);
-            }
-
-            if (workout.exerciseIds.includes(newExercise.id)) {
-              return res
-                .status(400)
-                .json(
-                  "Error: User is attempting to add an exercise that is already in the workout"
-                );
-            }
-            workout.exerciseIds.push(newExercise.id);
-
-            await workout
-              .save()
-              .catch((err) => res.status(400).json("Error: " + err));
-          })
-          .catch((err) => res.status(404).json("Error: " + err));
-      })
       .catch((err) => res.status(400).json("Error: " + err));
   }
 
