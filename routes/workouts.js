@@ -157,4 +157,47 @@ router.route("/comment/:id").post(authenticateJWT, async (req, res) => {
   }
 });
 
+router.route("/like/:id").post(authenticateJWT, (req, res) => {
+  const existingRelation = await LikeRelation.findOne({
+    user: req.user.userId,
+    workout: req.params.id,
+  }).exec();
+
+  if (existingRelation !== null) {
+    return res
+      .status(400)
+      .json("Error: Post is already liked");
+  }
+
+  const newLikeRelation = LikeRelation({
+    user: req.user.userId,
+    workout: req.params.id,
+  });
+
+  try {
+    await newLikeRelation.save();
+
+    // Note: The response message "post liked" is used in the frontend logic
+    // so be careful when changing this
+    res.json("Post liked!");
+  } catch (err) {
+    return res.status(500).json("Error: " + err);
+  }
+});
+
+router.route("/unlike/:id").post(authenticateJWT, async (req, res) => {
+  try {
+    await LikeRelation.findOneAndDelete({
+      user: req.user.userId,
+      workout: req.params.id,
+    });
+
+    // Note: The response message "post unliked" is used in the frontend logic
+    // so be careful when changing this
+    res.json("Post unliked!");
+  } catch (err) {
+    return res.status(500).json("Error: " + err);
+  }
+});
+
 module.exports = router;
