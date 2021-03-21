@@ -1,14 +1,22 @@
 const router = require("express").Router();
 const Workout = require("../models/workout.model");
 const Exercise = require("../models/exercise.model");
+const Comment = require("../models/comment.model");
+const Set = require("../models/set.model");
+const LikeRelation = require("../models/likeRelation.model");
 const authenticateJWT = require("../middleware/authenticate");
 
 router.route("/:id").get(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
-    .then((workout) => {
+    .then(async (workout) => {
+      const liked = await LikeRelation.findOne({
+        user: req.user.userId,
+        workout: workout._id,
+      }).exec();
+
       res.json({
         ...workout._doc,
-        liked: workout.likes.includes(req.user.userId),
+        liked: liked !== null,
       });
     })
     .catch((err) => res.status(404).json("Error: " + err));
@@ -23,13 +31,18 @@ router.route("/user/:id").get(authenticateJWT, (req, res) => {
   }
 
   Workout.find({ user: req.params.id })
-    .then((workouts) => {
+    .then(async (workouts) => {
+      const likes = await LikeRelation.find({ user: req.user.userId }).exec();
+
       let timeline = workouts
         .sort((a, b) => b.date - a.date)
         .slice(offset, offset + limit)
         .map((workout) => ({
           ...workout._doc,
-          liked: workout.likes.includes(req.user.userId),
+          liked:
+            likes.findIndex(
+              (likeRelation) => likeRelation.workout === workout._id
+            ) !== -1,
         }));
 
       res.json(timeline);
@@ -56,72 +69,6 @@ router.route("/add").post(authenticateJWT, (req, res) => {
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
-router.route("/like/:id").post(authenticateJWT, (req, res) => {
-  Workout.findById(req.params.id)
-    .then((workout) => {
-      if (workout.likes.includes(req.user.userId)) {
-        return res
-          .status(400)
-          .json(
-            "Error: User is attempting to like something they have already liked"
-          );
-      }
-      workout.likes.push(req.user.userId);
-
-      // Note: The response message "post liked" is used in the frontend logic
-      // so be careful when changing this
-      workout
-        .save()
-        .then(() => res.json("Post liked!"))
-        .catch((err) => res.status(400).json("Error: " + err));
-    })
-    .catch((err) => res.status(404).json("Error: " + err));
-});
-
-router.route("/unlike/:id").post(authenticateJWT, (req, res) => {
-  Workout.findById(req.params.id)
-    .then((workout) => {
-      if (!workout.likes.includes(req.user.userId)) {
-        return res
-          .status(400)
-          .json(
-            "Error: User is attempting to unlike something they have not already liked"
-          );
-      }
-      workout.likes = workout.likes.filter(
-        (id) => id.toString() !== req.user.userId
-      );
-
-      // Note: The response message "post unliked" is used in the frontend logic
-      // so be careful when changing this
-      workout
-        .save()
-        .then(() => res.json("Post unliked!"))
-        .catch((err) => res.status(400).json("Error: " + err));
-    })
-    .catch((err) => res.status(404).json("Error: " + err));
-});
-
-router.route("/comment/:id").post(authenticateJWT, (req, res) => {
-  Workout.findById(req.params.id)
-    .then((workout) => {
-      const comment = {
-        userId: req.user.userId,
-        comment: req.body.comment,
-      };
-
-      workout.comments.push(comment);
-
-      workout
-        .save()
-        .then((workout) =>
-          res.json(workout.comments[workout.comments.length - 1])
-        )
-        .catch((err) => res.status(400).json("Error: " + err));
-    })
-    .catch((err) => res.status(404).json("Error: " + err));
-});
-
 router.route("/update/:id").put(authenticateJWT, (req, res) => {
   Workout.findById(req.params.id)
     .then((workout) => {
@@ -141,49 +88,73 @@ router.route("/update/:id").put(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
-router.route("/:id").delete(authenticateJWT, (req, res) => {
-  Workout.findById(req.params.id)
-    .then((workout) => {
-      if (workout.user.toString() !== req.user.userId) {
-        return res.sendStatus(403);
-      }
+router.route("/:id").delete(authenticateJWT, async (req, res) => {
+  const exercises = await Exercise.find({ workout: req.params.id }).exec();
 
-      Exercise.deleteMany({ _id: { $in: workout.exerciseIds } })
-        .then(() => {
-          Workout.findByIdAndDelete(req.params.id)
-            .then(() => {
-              res.json("Workout deleted");
-            })
-            .catch((err) => res.status(404).json("Error: " + err));
-        })
-        .catch((err) => res.status(400).json("Error: " + err));
-    })
-    .catch((err) => res.status(404).json("Error: " + err));
-});
+  console.log(`Found ${exercises.length} exercises to delete`);
 
-router.route("/exercise/:id").delete(authenticateJWT, (req, res) => {
-  Workout.findById(req.body.workoutId)
-    .then((workout) => {
-      if (workout.exerciseIds.findIndex((id) => id === req.params.id) === -1) {
-        res.status(404).json("Error: Exercise not found in given workout");
-      }
+  let sets = [];
 
-      workout.exerciseIds = workout.exerciseIds.filter((exerciseId) => {
-        exerciseId !== req.params.id;
-      });
+  for (let exercise of exercises) {
+    sets.push(...(await Set.find({ exercise: exercise._id }).exec()));
+  }
 
-      workout
-        .save()
-        .then(() => {
-          Exercise.findByIdAndDelete(req.params.id)
-            .then(() => {
-              res.json("Exercise deleted.");
-            })
-            .catch((err) => res.status(404).json("Error: " + err));
-        })
-        .catch((err) => res.status(400).json("Error: " + err));
-    })
-    .catch((err) => res.status(404).json("Error: " + err));
+  console.log(`Found ${sets.length} sets to delete`);
+
+  try {
+    await Set.deleteMany({
+      _id: { $in: sets.map((setDoc) => setDoc._id) },
+    }).exec();
+  } catch (err) {
+    res.status(500).json("Error: " + err);
+    return;
+  }
+
+  console.log(`Deleted ${sets.length} sets`);
+
+  try {
+    await Exercise.deleteMany({
+      workout: req.params.id,
+    }).exec();
+  } catch (err) {
+    res.status(500).json("Error: " + err);
+    return;
+  }
+
+  console.log(`Deleted ${exercises.length} exercises`);
+
+  try {
+    await LikeRelation.deleteMany({
+      workout: req.params.id,
+    }).exec();
+  } catch (err) {
+    res.status(500).json("Error: " + err);
+    return;
+  }
+
+  console.log(`Deleted likes`);
+
+  try {
+    await Comment.deleteMany({
+      workout: req.params.id,
+    }).exec();
+  } catch (err) {
+    res.status(500).json("Error: " + err);
+    return;
+  }
+
+  console.log(`Deleted comments`);
+
+  try {
+    await Workout.findByIdAndDelete(req.params.id).exec();
+  } catch (err) {
+    res.status(500).json("Error: " + err);
+    return;
+  }
+
+  console.log(`Deleted workout`);
+
+  res.json("Successfully deleted workout");
 });
 
 module.exports = router;
