@@ -129,13 +129,32 @@ router.route("/:id").delete(authenticateJWT, async (req, res) => {
   try {
     await Workout.findByIdAndDelete(req.params.id).exec();
   } catch (err) {
-    res.status(500).json("Error: " + err);
-    return;
+    return res.status(500).json("Error: " + err);
   }
 
   console.log(`Deleted workout`);
 
   res.json("Successfully deleted workout");
+});
+
+router.route("/comment/:id").post(authenticateJWT, async (req, res) => {
+  if (!req.body.comment || req.body.comment.length === 0) {
+    return res.status(400).json("Error: Comment must exist and be non-blank");
+  }
+
+  const newComment = Comment({
+    comment: req.body.comment,
+    user: req.user.userId,
+    workout: req.params.id,
+  });
+
+  try {
+    await newComment.save();
+
+    res.json("Comment posted");
+  } catch (err) {
+    return res.status(500).json("Error: " + err);
+  }
 });
 
 module.exports = router;

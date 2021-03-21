@@ -11,6 +11,11 @@ const commentSchema = new Schema(
       type: mongoose.ObjectId,
       required: true,
     },
+    comment: {
+      type: String,
+      required: true,
+      minlength: 1,
+    },
   },
   {
     timestamps: true,
