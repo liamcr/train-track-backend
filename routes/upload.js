@@ -57,8 +57,6 @@ router.route("/").post(authenticateJWT, async (req, res) => {
           res.status(500).json("Error: " + err);
         }
 
-        console.log(data.Location);
-
         User.findById(req.user.userId)
           .then((user) => {
             const currentDisplayPictureName = user.displayImage
