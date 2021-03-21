@@ -89,6 +89,11 @@ router.route("/update/:id").put(authenticateJWT, (req, res) => {
 });
 
 router.route("/:id").delete(authenticateJWT, async (req, res) => {
+  if ((await Workout.findById(req.params.id).exec()) === null) {
+    res.status(404).json("Could not find workout");
+    return;
+  }
+
   const exercises = await Exercise.find({ workout: req.params.id }).exec();
 
   console.log(`Found ${exercises.length} exercises to delete`);
