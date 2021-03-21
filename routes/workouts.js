@@ -157,16 +157,14 @@ router.route("/comment/:id").post(authenticateJWT, async (req, res) => {
   }
 });
 
-router.route("/like/:id").post(authenticateJWT, (req, res) => {
+router.route("/like/:id").post(authenticateJWT, async (req, res) => {
   const existingRelation = await LikeRelation.findOne({
     user: req.user.userId,
     workout: req.params.id,
   }).exec();
 
   if (existingRelation !== null) {
-    return res
-      .status(400)
-      .json("Error: Post is already liked");
+    return res.status(400).json("Error: Post is already liked");
   }
 
   const newLikeRelation = LikeRelation({
