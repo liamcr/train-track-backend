@@ -21,6 +21,26 @@ router.route("/:id").get(authenticateJWT, (req, res) => {
     .catch((err) => res.status(404).json("Error: " + err));
 });
 
+router.route("/:id/exercises").get(authenticateJWT, (req, res) => {
+  Exercise.find({ workout: req.params.id })
+    .then((exercises) => {
+      res.json(exercises);
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
+
+router.route("/:id/likes").get(authenticateJWT, (req, res) => {
+  LikeRelation.find({ workout: req.params.id })
+    .then((likes) => {
+      res.json(likes);
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
+
 router.route("/user/:id").get(authenticateJWT, (req, res) => {
   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
   const offset = req.query.offset ? parseInt(req.query.offset) : 0;
@@ -177,7 +197,7 @@ router.route("/like/:id").post(authenticateJWT, async (req, res) => {
 
     // Note: The response message "post liked" is used in the frontend logic
     // so be careful when changing this
-    res.json("Post liked!");
+    res.json(newLikeRelation);
   } catch (err) {
     return res.status(500).json("Error: " + err);
   }

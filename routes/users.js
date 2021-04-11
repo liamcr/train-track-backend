@@ -26,13 +26,20 @@ router.route("/").get(authenticateJWT, (req, res) => {
     );
 });
 
-router.route("/:id").get(authenticateJWT, (req, res) => {
+router.route("/:id").get(authenticateJWT, async (req, res) => {
+  const following = await FollowRelation.find({
+    follower: req.params.id,
+  }).exec();
+
   User.findById(req.params.id)
     .select("-password")
     .then((user) => {
       let response = {
         ...user._doc,
-        isFollowing: user.followers.includes(req.user.userId),
+        isFollowing:
+          following.findIndex(
+            (followingRelation) => followingRelation.followee === req.params.id
+          ) !== -1,
       };
 
       res.json(response);

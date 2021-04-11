@@ -2,6 +2,7 @@ const router = require("express").Router();
 const Workout = require("../models/workout.model");
 const FollowRelation = require("../models/followRelation.model");
 const authenticateJWT = require("../middleware/authenticate");
+const LikeRelation = require("../models/likeRelation.model");
 
 router.route("/").get(authenticateJWT, async (req, res) => {
   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
@@ -28,7 +29,8 @@ router.route("/").get(authenticateJWT, async (req, res) => {
           ...workout._doc,
           liked:
             likes.findIndex(
-              (likeRelation) => likeRelation.workout === workout._id
+              (likeRelation) =>
+                likeRelation.workout.toString() === workout._id.toString()
             ) !== -1,
         }));
 
