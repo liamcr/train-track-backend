@@ -60,7 +60,8 @@ router.route("/user/:id").get(authenticateJWT, (req, res) => {
           ...workout._doc,
           liked:
             likes.findIndex(
-              (likeRelation) => likeRelation.workout === workout._id
+              (likeRelation) =>
+                likeRelation.workout.toString() === workout._id.toString()
             ) !== -1,
         }));
 
