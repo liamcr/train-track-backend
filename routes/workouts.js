@@ -41,6 +41,16 @@ router.route("/:id/likes").get(authenticateJWT, (req, res) => {
     });
 });
 
+router.route("/:id/comments").get(authenticateJWT, (req, res) => {
+  Comment.find({ workout: req.params.id })
+    .then((comments) => {
+      res.json(comments);
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
+
 router.route("/user/:id").get(authenticateJWT, (req, res) => {
   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
   const offset = req.query.offset ? parseInt(req.query.offset) : 0;
@@ -163,7 +173,7 @@ router.route("/comment/:id").post(authenticateJWT, async (req, res) => {
     return res.status(400).json("Error: Comment must exist and be non-blank");
   }
 
-  const newComment = Comment({
+  const newComment = new Comment({
     comment: req.body.comment,
     user: req.user.userId,
     workout: req.params.id,
@@ -172,7 +182,7 @@ router.route("/comment/:id").post(authenticateJWT, async (req, res) => {
   try {
     await newComment.save();
 
-    res.json("Comment posted");
+    res.json(newComment);
   } catch (err) {
     return res.status(500).json("Error: " + err);
   }

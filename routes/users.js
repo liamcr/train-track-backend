@@ -2,8 +2,6 @@ const jwt = require("jsonwebtoken");
 const router = require("express").Router();
 const User = require("../models/user.model");
 const authenticateJWT = require("../middleware/authenticate");
-const Workout = require("../models/workout.model");
-const Exercise = require("../models/exercise.model");
 const AWS = require("aws-sdk");
 const FollowRelation = require("../models/followRelation.model");
 
@@ -50,7 +48,7 @@ router.route("/:id").get(authenticateJWT, async (req, res) => {
 });
 
 router.route("/register").post((req, res) => {
-  let newUser = User({
+  let newUser = new User({
     username: req.body.username,
   });
 
