@@ -28,6 +28,6 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.18",
     "nodemon": "^2.0.6",
-    "sharp": "^0.27.1"
+    "sharp": "^0.30.5"
   }
 }
